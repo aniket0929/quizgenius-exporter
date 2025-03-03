@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -6,9 +5,11 @@ import { AppConfig, FileType, Question } from '@/types';
 import FileUploader from '@/components/FileUploader';
 import ConfigOptions from '@/components/ConfigOptions';
 import QuestionList from '@/components/QuestionList';
+import Footer from '@/components/Footer';
 import { generateQuestions } from '@/lib/ai-generator';
 import { useToast } from '@/components/ui/use-toast';
-import { BookOpen, Brain, FileText, Lightbulb, Sparkles } from 'lucide-react';
+import { BookOpen, Brain, FileText, HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { toast } = useToast();
@@ -121,6 +122,15 @@ const Index = () => {
                 <span className="text-sm text-muted-foreground">Export to Excel</span>
               </div>
             </div>
+            
+            <div className="mt-6">
+              <Button variant="outline" size="sm" className="gap-2" asChild>
+                <Link to="/faq">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Frequently Asked Questions</span>
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -187,21 +197,7 @@ const Index = () => {
         )}
       </main>
       
-      <footer className="py-8 border-t bg-secondary/30">
-        <div className="container max-w-5xl mx-auto px-4">
-          <div className="flex flex-col items-center justify-center gap-2">
-            <div className="flex items-center">
-              <Brain className="w-5 h-5 mr-1 text-primary/70" />
-              <p className="font-medium text-primary/70">
-                QuizCraft AI
-              </p>
-            </div>
-            <p className="text-sm text-muted-foreground text-center">
-              Transform your content into high-quality multiple-choice questions in seconds.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
