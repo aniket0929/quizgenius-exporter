@@ -8,6 +8,7 @@ import ConfigOptions from '@/components/ConfigOptions';
 import QuestionList from '@/components/QuestionList';
 import { generateQuestions } from '@/lib/ai-generator';
 import { useToast } from '@/components/ui/use-toast';
+import { BookOpen, Brain, FileText, Lightbulb, Sparkles } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
@@ -82,16 +83,44 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="w-full py-8 bg-gradient-to-r from-secondary/80 to-secondary">
+      <header className="w-full py-10 bg-gradient-to-r from-primary/20 via-primary/10 to-secondary">
         <div className="container max-w-5xl mx-auto px-4">
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight mb-4 text-balance">
-              AI-Powered MCQ Generator
+          <div className="flex flex-col items-center text-center space-y-3">
+            <div className="inline-flex items-center justify-center mb-2">
+              <Brain className="w-8 h-8 mr-2 text-primary" />
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-2 text-balance bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+              QuizCraft AI
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-balance">
-              Transform your PDF documents or text content into high-quality multiple-choice questions. 
-              Perfect for educators, trainers, and content creators.
+            <p className="text-lg md:text-xl font-medium text-primary/80 mb-1">
+              Intelligent MCQ Generator
             </p>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-balance">
+              Transform your PDF documents or text content into high-quality multiple-choice questions 
+              in seconds. Perfect for educators, trainers, and content creators.
+            </p>
+            
+            <div className="flex flex-wrap justify-center gap-4 mt-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm text-muted-foreground">Upload PDF or Text</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lightbulb className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm text-muted-foreground">AI-Generated Questions</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm text-muted-foreground">Export to Excel</span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -127,10 +156,11 @@ const Index = () => {
                   onClick={handleGenerateQuestions}
                   disabled={isGenerating}
                   size="lg"
-                  className="relative overflow-hidden group py-6"
+                  className="relative overflow-hidden group py-6 px-8"
                 >
-                  <span className="relative z-10">
+                  <span className="relative z-10 flex items-center gap-2">
                     {isGenerating ? 'Generating Questions...' : 'Generate Questions'}
+                    {!isGenerating && <Sparkles className="w-4 h-4 ml-1 animate-pulse" />}
                   </span>
                   {isGenerating && (
                     <span className="absolute inset-0 flex items-center justify-center">
@@ -157,11 +187,17 @@ const Index = () => {
         )}
       </main>
       
-      <footer className="py-6 border-t">
+      <footer className="py-8 border-t bg-secondary/30">
         <div className="container max-w-5xl mx-auto px-4">
-          <div className="flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">
-              AI-Powered MCQ Generator - Transform your content into questions
+          <div className="flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center">
+              <Brain className="w-5 h-5 mr-1 text-primary/70" />
+              <p className="font-medium text-primary/70">
+                QuizCraft AI
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Transform your content into high-quality multiple-choice questions in seconds.
             </p>
           </div>
         </div>
