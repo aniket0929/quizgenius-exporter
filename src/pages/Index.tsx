@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -7,7 +6,6 @@ import FileUploader from '@/components/FileUploader';
 import ConfigOptions from '@/components/ConfigOptions';
 import QuestionList from '@/components/QuestionList';
 import Footer from '@/components/Footer';
-import APIKeySettings from '@/components/APIKeySettings';
 import { generateQuestions } from '@/lib/ai-generator';
 import { useToast } from '@/components/ui/use-toast';
 import { BookOpen, Brain, FileText, HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
@@ -125,14 +123,13 @@ const Index = () => {
               </div>
             </div>
             
-            <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+            <div className="mt-6">
               <Button variant="outline" size="sm" className="gap-2" asChild>
                 <Link to="/faq">
                   <HelpCircle className="w-4 h-4" />
                   <span>Frequently Asked Questions</span>
                 </Link>
               </Button>
-              <APIKeySettings />
             </div>
           </div>
         </div>
