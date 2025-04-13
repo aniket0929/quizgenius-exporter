@@ -1,14 +1,56 @@
-
 import { AppConfig, Question } from '@/types';
 import { toast } from '@/components/ui/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import OpenAI from 'openai';
+
+// Store API key in a variable (in production, this should come from environment variables)
+let openaiApiKey: string | null = null;
+
+// Initialize OpenAI client
+const createOpenAIClient = () => {
+  if (!openaiApiKey) {
+    throw new Error("OpenAI API key not set");
+  }
+  return new OpenAI({
+    apiKey: openaiApiKey,
+    dangerouslyAllowBrowser: true // Note: In production, API requests should be made from a backend
+  });
+};
+
+export function setOpenAIApiKey(apiKey: string): void {
+  openaiApiKey = apiKey;
+  localStorage.setItem('openai_api_key', apiKey);
+}
+
+export function getOpenAIApiKey(): string | null {
+  if (!openaiApiKey) {
+    // Try to load from localStorage
+    const storedKey = localStorage.getItem('openai_api_key');
+    if (storedKey) {
+      openaiApiKey = storedKey;
+    }
+  }
+  return openaiApiKey;
+}
+
+export function clearOpenAIApiKey(): void {
+  openaiApiKey = null;
+  localStorage.removeItem('openai_api_key');
+}
 
 export async function generateQuestions(
   text: string,
   config: AppConfig
 ): Promise<Question[]> {
-  // In a real implementation, this would call an AI API
-  // For demo purposes, we'll simulate the process
+  // Check if API key is set
+  if (!getOpenAIApiKey()) {
+    toast({
+      title: "API Key Required",
+      description: "Please set your OpenAI API key in the settings before generating questions.",
+      variant: "destructive",
+    });
+    return [];
+  }
   
   // Check if text is too short (less than 50 characters per requested question)
   const minTextLength = config.numberOfQuestions * 50;
@@ -16,6 +58,77 @@ export async function generateQuestions(
     toast({
       title: "Insufficient content",
       description: `Your content is too short to generate ${config.numberOfQuestions} questions. Please provide more text.`,
+      variant: "destructive",
+    });
+    return [];
+  }
+  
+  try {
+    const openai = createOpenAIClient();
+    
+    // Create system prompt based on configuration
+    const systemPrompt = `You are an expert educator creating multiple-choice questions. 
+Generate ${config.numberOfQuestions} ${config.difficultyLevel}-difficulty multiple-choice questions based on the provided text. 
+Each question should have exactly 4 options with only one correct answer.
+Format your response as a valid JSON array with this structure:
+[
+  {
+    "text": "Question text goes here?",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correctAnswer": 0 (index of correct option, 0-3)
+  },
+  ...more questions
+]`;
+
+    // Call OpenAI API
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // Using GPT-4o for higher quality questions
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Generate multiple-choice questions from the following content:\n\n${text}` }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+      response_format: { type: "json_object" }
+    });
+    
+    // Extract the generated content
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("No content received from OpenAI");
+    }
+    
+    // Parse the JSON response
+    try {
+      const parsedResponse = JSON.parse(content);
+      const questions = Array.isArray(parsedResponse.questions) ? parsedResponse.questions : 
+                        Array.isArray(parsedResponse) ? parsedResponse : [];
+      
+      // Map to our Question format with unique IDs
+      return questions.map((q: any) => ({
+        id: uuidv4(),
+        text: q.text,
+        options: q.options || [],
+        correctAnswer: q.correctAnswer
+      }));
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", parseError);
+      throw new Error("Failed to parse the generated questions");
+    }
+  } catch (error) {
+    console.error("Error calling OpenAI API:", error);
+    throw error;
+  }
+}
+
+// Keep the mock questions for fallback or testing
+export const getMockQuestions = (count: number, difficulty: string): Question[] => {
+  // Check if text is too short (less than 50 characters per requested question)
+  const minTextLength = count * 50;
+  if (text.length < minTextLength) {
+    toast({
+      title: "Insufficient content",
+      description: `Your content is too short to generate ${count} questions. Please provide more text.`,
       variant: "destructive",
     });
     return [];
@@ -234,16 +347,16 @@ export async function generateQuestions(
   // Adjust difficulty level by selecting questions
   let adjustedQuestions = [...mockQuestions];
   
-  if (config.difficultyLevel === 'easy') {
+  if (difficulty === 'easy') {
     // For easy, use more straightforward questions (first half)
     adjustedQuestions = mockQuestions.slice(0, mockQuestions.length / 2);
-  } else if (config.difficultyLevel === 'hard') {
+  } else if (difficulty === 'hard') {
     // For hard, use more complex questions (second half)
     adjustedQuestions = mockQuestions.slice(mockQuestions.length / 2);
   }
   
   // Select the requested number of questions
-  for (let i = 0; i < config.numberOfQuestions && i < adjustedQuestions.length; i++) {
+  for (let i = 0; i < count && i < adjustedQuestions.length; i++) {
     const q = adjustedQuestions[i];
     questions.push({
       id: uuidv4(),
@@ -254,4 +367,4 @@ export async function generateQuestions(
   }
   
   return questions;
-}
+};
