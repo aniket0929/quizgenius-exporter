@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { AppConfig, FileType, Question } from '@/types';
@@ -8,8 +9,15 @@ import QuestionList from '@/components/QuestionList';
 import Footer from '@/components/Footer';
 import { generateQuestions } from '@/lib/ai-generator';
 import { useToast } from '@/components/ui/use-toast';
-import { BookOpen, Brain, FileText, HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
+import { BookOpen, Brain, FileText, HelpCircle, Lightbulb, Save, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const LOCAL_STORAGE_KEYS = {
+  UPLOADED_CONTENT: 'quizcraft_uploaded_content',
+  FILE_TYPE: 'quizcraft_file_type',
+  QUESTIONS: 'quizcraft_questions',
+  CONFIG: 'quizcraft_config'
+};
 
 const Index = () => {
   const { toast } = useToast();
@@ -21,6 +29,44 @@ const Index = () => {
     numberOfQuestions: 10,
     difficultyLevel: 'medium',
   });
+  
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedContent = localStorage.getItem(LOCAL_STORAGE_KEYS.UPLOADED_CONTENT);
+      const savedFileType = localStorage.getItem(LOCAL_STORAGE_KEYS.FILE_TYPE) as FileType;
+      const savedQuestions = localStorage.getItem(LOCAL_STORAGE_KEYS.QUESTIONS);
+      const savedConfig = localStorage.getItem(LOCAL_STORAGE_KEYS.CONFIG);
+      
+      if (savedContent) setUploadedContent(savedContent);
+      if (savedFileType) setFileType(savedFileType);
+      if (savedQuestions) setQuestions(JSON.parse(savedQuestions));
+      if (savedConfig) setConfig(JSON.parse(savedConfig));
+      
+      if (savedContent || savedQuestions) {
+        toast({
+          title: "Data loaded from local storage",
+          description: "Your previously saved content and questions have been restored.",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading data from localStorage:", error);
+    }
+  }, [toast]);
+  
+  // Save data to localStorage when it changes
+  useEffect(() => {
+    if (uploadedContent) {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.UPLOADED_CONTENT, uploadedContent);
+    }
+    if (fileType) {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.FILE_TYPE, fileType);
+    }
+    if (questions.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.QUESTIONS, JSON.stringify(questions));
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEYS.CONFIG, JSON.stringify(config));
+  }, [uploadedContent, fileType, questions, config]);
   
   const handleContentLoaded = (content: string, type: FileType) => {
     setUploadedContent(content);
@@ -68,6 +114,7 @@ const Index = () => {
   };
   
   const handleReset = () => {
+    // Clear state
     setUploadedContent(null);
     setFileType(null);
     setQuestions([]);
@@ -76,9 +123,15 @@ const Index = () => {
       difficultyLevel: 'medium',
     });
     
+    // Clear localStorage
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.UPLOADED_CONTENT);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.FILE_TYPE);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.QUESTIONS);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.CONFIG);
+    
     toast({
       title: "Reset complete",
-      description: "All content and generated questions have been cleared.",
+      description: "All content and generated questions have been cleared from local storage.",
     });
   };
 
@@ -120,6 +173,12 @@ const Index = () => {
                   <BookOpen className="w-4 h-4 text-primary" />
                 </div>
                 <span className="text-sm text-muted-foreground">Export to Excel</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Save className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm text-muted-foreground">Auto-Save to Local Storage</span>
               </div>
             </div>
             
